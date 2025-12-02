@@ -3,7 +3,7 @@
 import { CombinedCountryData } from "@/types/game";
 import { useState } from "react";
 import { MAP_PATHS } from "./MapPaths";
-import OrderForm from "@/components/OrderForm";
+import OrderPopup from "./OrderForm"; // Make sure this matches your file name
 
 interface GameMapProps {
     countries: CombinedCountryData[];
@@ -12,10 +12,12 @@ interface GameMapProps {
 export default function GameMap({ countries }: GameMapProps) {
     const [selected, setSelected] = useState<string | null>(null);
     const [target, setTarget] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
     // Helper to find data for a specific country ID
     const getCountry = (id: string) => countries.find((c) => c.country_id === id);
 
+    // LOGIC: Click handling
     const handleCountryClick = (clickedId: string) => {
         // 1. If nothing selected, just select the clicked country
         if (!selected) {
@@ -41,17 +43,52 @@ export default function GameMap({ countries }: GameMapProps) {
         }
     };
 
+    // LOGIC: Color coding
     const getFillColor = (ownerId: string | null) => {
         if (!ownerId) return "#334155"; // Neutral Slate
         return "#3b82f6"; // Player Blue
     };
 
+    // NEW LOGIC: Trigger the API Engine
+    const handleEndTurn = async () => {
+        if (!confirm("Are you sure? This will resolve all queued orders.")) return;
+
+        setLoading(true);
+        try {
+            const res = await fetch("/api/resolve-turn");
+            const data = await res.json();
+            alert(data.message);
+            window.location.reload(); // Refresh page to see new troop positions
+        } catch (err) {
+            console.error(err);
+            alert("Failed to resolve turn");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="w-full max-w-6xl mx-auto p-2 relative">
 
+            {/* HEADER & DEV TOOLS */}
+            <div className="flex justify-between items-center mb-6">
+                <div>
+                    <h2 className="text-white text-2xl font-black tracking-tight">WORLD MAP</h2>
+                    <p className="text-slate-400 text-sm">Season 0: Alpha</p>
+                </div>
+
+                <button
+                    onClick={handleEndTurn}
+                    disabled={loading}
+                    className="bg-purple-600 hover:bg-purple-500 text-white px-6 py-2 rounded-full font-bold shadow-lg border border-purple-400 transition-all active:scale-95 disabled:opacity-50"
+                >
+                    {loading ? "PROCESSING..." : "⚡ FORCE END DAY"}
+                </button>
+            </div>
+
             {/* ORDER MODAL */}
             {selected && target && (
-                <OrderForm
+                <OrderPopup
                     origin={getCountry(selected) || null}
                     target={getCountry(target)!}
                     onClose={() => {
@@ -86,10 +123,13 @@ export default function GameMap({ countries }: GameMapProps) {
                                     <path
                                         d={pathData}
                                         fill={getFillColor(countryData?.owner_id || null)}
+                                        // STROKE LOGIC: White for Selected, Yellow for Neighbor, Dark for others
                                         stroke={isSelected ? "#ffffff" : isNeighbor ? "#fbbf24" : "#0f172a"}
                                         strokeWidth={isSelected ? 3 : isNeighbor ? 2 : 1}
                                         className="transition-all duration-300"
                                     />
+
+                                    {/* TEXT LOGIC: Center Minds Count */}
                                     <text
                                         x={getCenter(pathData).x}
                                         y={getCenter(pathData).y}
@@ -118,6 +158,7 @@ export default function GameMap({ countries }: GameMapProps) {
                                         {getCountry(selected)?.continent}
                                     </p>
                                 </div>
+
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="bg-slate-700 p-2 rounded">
                                         <p className="text-xs text-slate-400">Owner</p>
@@ -126,6 +167,17 @@ export default function GameMap({ countries }: GameMapProps) {
                                     <div className="bg-slate-700 p-2 rounded">
                                         <p className="text-xs text-slate-400">Minds</p>
                                         <p className="font-mono text-yellow-400 text-xl">{getCountry(selected)?.minds_count}</p>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-slate-700">
+                                    <p className="text-xs text-slate-400 mb-2">Valid Targets (Neighbors):</p>
+                                    <div className="flex flex-wrap gap-1">
+                                        {getCountry(selected)?.adjacencies.map(adj => (
+                                            <span key={adj} className="text-[10px] px-2 py-1 bg-slate-900 rounded border border-slate-600 text-slate-300">
+                                                {countries.find(c => c.country_id === adj)?.name.substring(0, 15)}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
@@ -141,6 +193,7 @@ export default function GameMap({ countries }: GameMapProps) {
     );
 }
 
+// Center calculation helper
 function getCenter(pathString: string) {
     const nums = pathString.match(/-?\d+(\.\d+)?/g)?.map(Number) || [];
     let x = 0, y = 0, count = 0;
