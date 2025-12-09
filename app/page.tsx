@@ -1,112 +1,86 @@
-import Image from "next/image";
+import GameMap from "@/components/GameMap";
+import { Brain, Crosshair, Users } from "lucide-react";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className="min-h-screen bg-white text-slate-900 font-sans selection:bg-teal-100">
+      {/* Top Bar */}
+      <nav className="border-b border-slate-100 px-6 py-4 flex justify-between items-center bg-white sticky top-0 z-50">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+            <Brain className="w-5 h-5 text-teal-400" />
+          </div>
+          <div>
+            <h1 className="font-bold text-xl tracking-tight leading-none">BRAIN DRAIN</h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Season 0</p>
+          </div>
         </div>
-      </div>
+        <div className="flex items-center gap-6">
+          <div className="text-right hidden sm:block">
+            <div className="text-[10px] font-bold text-slate-400 uppercase">Server Time</div>
+            <div className="font-mono font-bold text-lg">00:00 UTC</div>
+          </div>
+          <div className="h-8 w-8 rounded-full bg-slate-100 border border-slate-200"></div>
+        </div>
+      </nav>
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+      <div className="max-w-7xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+        {/* LEFT COLUMN: Controls */}
+        <div className="lg:col-span-3 space-y-6">
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+          {/* Action Card */}
+          <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 shadow-sm">
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Daily Tasks</h2>
+            <div className="space-y-3">
+              <button className="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg hover:border-teal-500 hover:shadow-md transition-all group">
+                <span className="font-bold text-slate-700 group-hover:text-teal-600">Initiative Puzzle</span>
+                <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">Pending</span>
+              </button>
+              <button className="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-lg hover:border-orange-500 hover:shadow-md transition-all group">
+                <span className="font-bold text-slate-700 group-hover:text-orange-600">Combat Trivia</span>
+                <span className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">Pending</span>
+              </button>
+            </div>
+          </div>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+          {/* Stats Card */}
+          <div className="bg-slate-900 text-slate-200 rounded-xl p-5 shadow-lg">
+            <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Global Influence</h2>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="text-2xl font-bold text-white">0</div>
+                <div className="text-xs text-slate-400">Territories</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-teal-400">3</div>
+                <div className="text-xs text-slate-400">Total Minds</div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+        {/* CENTER COLUMN: The Map */}
+        <div className="lg:col-span-9">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <Crosshair className="w-5 h-5 text-slate-400" />
+              Strategic Theater
+            </h2>
+            <div className="flex items-center gap-2 text-sm text-slate-500">
+              <Users className="w-4 h-4" />
+              <span>45 Regions Active</span>
+            </div>
+          </div>
+
+          <GameMap />
+
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-100 rounded-lg text-sm text-yellow-800 flex items-center gap-3">
+            <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+            System Message: Welcome to Day 1. Complete your puzzles to generate combat initiative.
+          </div>
+        </div>
+
       </div>
     </main>
   );
