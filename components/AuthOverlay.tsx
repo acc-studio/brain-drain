@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Brain, ArrowRight, Loader2, AlertCircle, Lock, Mail, Key, User } from "lucide-react";
+import { Brain, ArrowRight, Loader2, AlertCircle, Mail, Key, User, Lock } from "lucide-react";
 
 export default function AuthOverlay() {
     const supabase = createClient();
@@ -28,7 +28,7 @@ export default function AuthOverlay() {
         });
 
         if (signInError) {
-            setError("Authentication Failed: " + signInError.message);
+            setError(signInError.message);
             setLoading(false);
         } else {
             window.location.reload();
@@ -40,15 +40,12 @@ export default function AuthOverlay() {
         setLoading(true);
         setError("");
 
-        // 1. Basic Client-side Validation
         if (!accessCode) {
             setError("Access Code is required.");
             setLoading(false);
             return;
         }
 
-        // 2. Sign Up with Meta Data
-        // The Database Trigger will validate the 'access_code' and block the user if invalid.
         const { error: signUpError } = await supabase.auth.signUp({
             email,
             password,
@@ -61,10 +58,7 @@ export default function AuthOverlay() {
         });
 
         if (signUpError) {
-            // SHOW THE REAL ERROR
-            // Supabase returns "Database error saving new user: <Trigger Message>"
-            // We want to see that Trigger Message.
-            console.error("Full Error:", signUpError);
+            console.error("Signup Error:", signUpError);
             setError(signUpError.message);
         } else {
             window.location.reload();
@@ -72,61 +66,64 @@ export default function AuthOverlay() {
         setLoading(false);
     };
 
+    // Shared Input Styles for Maximum Readability
+    const inputClass = "w-full px-4 py-3 bg-white border-2 border-slate-300 rounded-lg text-black font-medium focus:border-teal-600 focus:outline-none transition-colors placeholder:text-slate-400";
+    const labelClass = "block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1";
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50 p-4">
-            <div className="w-full max-w-md bg-white border border-slate-200 p-8 rounded-2xl shadow-xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-100 p-4">
+            <div className="w-full max-w-md bg-white border border-slate-300 p-8 rounded-2xl shadow-2xl relative">
 
                 {/* Header */}
-                <div className="flex flex-col items-center mb-6">
-                    <div className="w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg transform rotate-3 mb-4">
-                        <Brain className="w-7 h-7 text-teal-400" />
+                <div className="flex flex-col items-center mb-8">
+                    <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg transform rotate-3 mb-4">
+                        <Brain className="w-6 h-6 text-teal-400" />
                     </div>
-                    <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">BRAIN DRAIN</h1>
-                    <p className="text-slate-500 font-medium text-sm">Season 0: The Awakening</p>
+                    <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">BRAIN DRAIN</h1>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-slate-100 mb-6">
+                <div className="flex border-b-2 border-slate-100 mb-8">
                     <button
                         onClick={() => { setMode("login"); setError(""); }}
-                        className={`flex-1 pb-3 text-sm font-bold transition-colors ${mode === "login" ? "text-teal-600 border-b-2 border-teal-500" : "text-slate-400 hover:text-slate-600"}`}
+                        className={`flex-1 pb-3 text-sm font-bold transition-colors ${mode === "login" ? "text-teal-700 border-b-4 border-teal-600 -mb-[2px]" : "text-slate-400 hover:text-slate-600"}`}
                     >
-                        Operative Login
+                        LOGIN
                     </button>
                     <button
                         onClick={() => { setMode("register"); setError(""); }}
-                        className={`flex-1 pb-3 text-sm font-bold transition-colors ${mode === "register" ? "text-teal-600 border-b-2 border-teal-500" : "text-slate-400 hover:text-slate-600"}`}
+                        className={`flex-1 pb-3 text-sm font-bold transition-colors ${mode === "register" ? "text-teal-700 border-b-4 border-teal-600 -mb-[2px]" : "text-slate-400 hover:text-slate-600"}`}
                     >
-                        Activate Access Code
+                        REGISTER
                     </button>
                 </div>
 
                 {/* LOGIN FORM */}
                 {mode === "login" && (
-                    <form onSubmit={handleLogin} className="space-y-4 animate-in fade-in slide-in-from-left-4 duration-200">
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+                    <form onSubmit={handleLogin} className="space-y-5">
+                        <div>
+                            <label className={labelClass}>Email Address</label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                                <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 pointer-events-none" />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                    className={`${inputClass} pl-12`}
                                     placeholder="name@example.com"
                                     required
                                 />
                             </div>
                         </div>
-                        <div className="space-y-1">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password</label>
+                        <div>
+                            <label className={labelClass}>Password</label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                                <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 pointer-events-none" />
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                                    className={`${inputClass} pl-12`}
                                     placeholder="••••••••"
                                     required
                                 />
@@ -134,68 +131,71 @@ export default function AuthOverlay() {
                         </div>
                         <button
                             disabled={loading}
-                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/10 mt-2"
+                            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-xl mt-4"
                         >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sign In"}
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "ENTER WAR ROOM"}
                         </button>
                     </form>
                 )}
 
                 {/* REGISTER FORM */}
                 {mode === "register" && (
-                    <form onSubmit={handleRegister} className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-200">
+                    <form onSubmit={handleRegister} className="space-y-4">
 
-                        {/* Access Code Field */}
-                        <div className="bg-teal-50/50 p-3 rounded-lg border border-teal-100 space-y-1">
-                            <label className="text-[10px] font-bold text-teal-700 uppercase tracking-wider flex items-center gap-1">
-                                <Key className="w-3 h-3" /> Authorization Code
+                        {/* Access Code */}
+                        <div className="bg-teal-50 p-4 rounded-xl border border-teal-100">
+                            <label className="block text-xs font-bold text-teal-800 uppercase tracking-wider mb-2">
+                                Authorization Code
                             </label>
-                            <input
-                                type="text"
-                                value={accessCode}
-                                onChange={(e) => setAccessCode(e.target.value)}
-                                className="w-full bg-white border border-teal-200 text-teal-900 font-mono font-bold text-center py-2 rounded uppercase tracking-widest focus:outline-none focus:border-teal-500"
-                                placeholder="XXXX-XXXX"
-                                required
-                            />
+                            <div className="relative">
+                                <Key className="absolute left-4 top-3.5 w-5 h-5 text-teal-600 pointer-events-none" />
+                                <input
+                                    type="text"
+                                    value={accessCode}
+                                    onChange={(e) => setAccessCode(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3 bg-white border-2 border-teal-200 rounded-lg text-teal-900 font-bold uppercase tracking-widest focus:border-teal-600 focus:outline-none placeholder:text-teal-300/50"
+                                    placeholder="ALPHA-1"
+                                    required
+                                />
+                            </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1 col-span-2">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Operative Alias</label>
+                        <div className="grid grid-cols-1 gap-4">
+                            <div>
+                                <label className={labelClass}>Operative Alias</label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                                    <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-400 pointer-events-none" />
                                     <input
                                         type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none"
+                                        className={`${inputClass} pl-12`}
                                         placeholder="CommanderX"
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-1 col-span-2 sm:col-span-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email</label>
+                            <div>
+                                <label className={labelClass}>Email</label>
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none"
-                                    placeholder="name@ex.com"
+                                    className={inputClass}
+                                    placeholder="name@example.com"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-1 col-span-2 sm:col-span-1">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Password</label>
+                            <div>
+                                <label className={labelClass}>Password</label>
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-teal-500 outline-none"
-                                    placeholder="••••••"
+                                    className={inputClass}
+                                    placeholder="••••••••"
                                     required
                                 />
                             </div>
@@ -203,21 +203,21 @@ export default function AuthOverlay() {
 
                         <button
                             disabled={loading}
-                            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-teal-600/20 mt-2"
+                            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-lg transition-all flex items-center justify-center gap-2 shadow-xl mt-2"
                         >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                 <>
-                                    Verify & Initialize <ArrowRight className="w-4 h-4" />
+                                    INITIALIZE ACCOUNT <ArrowRight className="w-5 h-5" />
                                 </>
                             )}
                         </button>
                     </form>
                 )}
 
-                {/* Error Message */}
+                {/* Error Box */}
                 {error && (
-                    <div className="mt-6 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-3 text-red-600 text-xs font-bold animate-in fade-in slide-in-from-bottom-2">
-                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <div className="mt-6 p-4 bg-red-50 border-2 border-red-100 rounded-xl flex items-center gap-3 text-red-700 text-sm font-bold">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
                         {error}
                     </div>
                 )}
