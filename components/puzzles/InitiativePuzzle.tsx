@@ -47,14 +47,27 @@ export default function InitiativePuzzle({ user, dayNumber, onComplete, onClose 
     }, [dayNumber]);
 
     const saveResult = async (guessCount: number) => {
-        if (!user) return;
-        const { error } = await supabase.from("daily_performance").upsert({
+        if (!user) {
+            console.error("User not found in saveResult");
+            return;
+        }
+
+        console.log(`Saving result for User ${user.id} Day ${dayNumber}: ${guessCount} guesses`);
+
+        const { data, error } = await supabase.from("daily_performance").upsert({
             user_id: user.id,
             day_number: dayNumber,
             wordle_guesses: guessCount,
             wordle_completed_at: new Date().toISOString(),
-        });
-        if (!error) setTimeout(onComplete, 1500);
+        }, { onConflict: 'user_id, day_number' }); // Explicit conflict definition
+
+        if (error) {
+            console.error("Supabase Save Error:", error);
+            alert("Error saving progress: " + error.message);
+        } else {
+            console.log("Save successful!");
+            setTimeout(onComplete, 1500);
+        }
     };
 
     const handleKeyDown = useCallback((key: string) => {
