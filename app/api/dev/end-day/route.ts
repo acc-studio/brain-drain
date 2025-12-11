@@ -90,17 +90,40 @@ export async function POST() {
                 await log(currentDay, `Reinforcements: ${minds} minds moved to ${target_country_id}.`, 'info');
             }
             else if (order_type === 'attack' || (order_type === 'transfer' && target.owner_id !== user_id)) {
-                const attackPower = minds;
-                const defensePower = target.minds;
 
-                if (attackPower > defensePower) {
-                    const remaining = attackPower - defensePower;
-                    await supabase.from('map_state').update({ owner_id: user_id, minds: remaining }).eq('country_id', target_country_id);
-                    await log(currentDay, `CONQUEST: ${target_country_id} captured by ${source_country_id}!`, 'conquest');
+                // RISK COMBAT SIMULATION
+                let att = minds;
+                let def = target.minds;
+                const battleLog: string[] = [];
+
+                while (att > 0 && def > 0) {
+                    // 1. Determine Dice Count (TOTAL WAR: All troops roll)
+                    const attDiceCount = att;
+                    const defDiceCount = def;
+
+                    // 2. Roll Dice
+                    const attRolls = Array.from({ length: attDiceCount }, () => Math.floor(Math.random() * 6) + 1).sort((a, b) => b - a);
+                    const defRolls = Array.from({ length: defDiceCount }, () => Math.floor(Math.random() * 6) + 1).sort((a, b) => b - a);
+
+                    // 3. Compare Results
+                    const comparisons = Math.min(attRolls.length, defRolls.length);
+                    for (let i = 0; i < comparisons; i++) {
+                        if (attRolls[i] > defRolls[i]) {
+                            def--; // Defender loses
+                        } else {
+                            att--; // Attacker loses (ties go to defender)
+                        }
+                    }
+                }
+
+                if (att > 0) {
+                    // VICTORY
+                    await supabase.from('map_state').update({ owner_id: user_id, minds: att }).eq('country_id', target_country_id);
+                    await log(currentDay, `CONQUEST: ${source_country_id} captures ${target_country_id}! (Sent: ${minds}, Lost: ${minds - att}, Killed: ${target.minds})`, 'conquest');
                 } else {
-                    const remainingDef = defensePower - attackPower;
-                    await supabase.from('map_state').update({ minds: remainingDef }).eq('country_id', target_country_id);
-                    await log(currentDay, `Defeat: Attack on ${target_country_id} failed.`, 'combat');
+                    // DEFEAT
+                    await supabase.from('map_state').update({ minds: def }).eq('country_id', target_country_id);
+                    await log(currentDay, `DEFEAT: Attack on ${target_country_id} repelled. (Sent: ${minds}, Died: ${minds}, Defenders Remaining: ${def})`, 'combat');
                 }
             }
         }
@@ -113,7 +136,7 @@ export async function POST() {
     const nextDay = currentDay + 1;
 
     // 1. Update Global Settings
-    await supabase.from('global_settings').update({ value: nextDay.toString() }).eq('key', 'current_day');
+    await supabase.from('global_settings').upsert({ key: 'current_day', value: nextDay.toString() }, { onConflict: 'key' });
 
     // 2. Generate Puzzle from the NEW Word Bank
     const randomWord = WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)];

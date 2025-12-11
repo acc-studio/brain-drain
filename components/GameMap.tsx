@@ -414,7 +414,8 @@ export default function GameMap({ orders, mapState, userId, currentDay, onRefres
                     targetId={selection.target}
                     maxMinds={getAvailableMinds()}
                     isAttack={mapState.find(c => c.country_id === selection.target)?.owner_id !== userId}
-                    dayNumber={currentDay} // <--- PASS THE PROP
+                    targetMinds={mapState.find(c => c.country_id === selection.target)?.minds || 0}
+                    dayNumber={currentDay}
                     onClose={() => { setShowOrderModal(false); setSelection({ source: null, target: null }); }}
                     onSuccess={() => {
                         onRefresh();
