@@ -413,7 +413,8 @@ export default function GameMap({ orders, mapState, userId, currentDay, onRefres
                     sourceId={selection.source}
                     targetId={selection.target}
                     maxMinds={getAvailableMinds()}
-                    isAttack={mapState.find(c => c.country_id === selection.target)?.owner_id !== userId}
+                    isAttack={!!mapState.find(c => c.country_id === selection.target)?.owner_id && mapState.find(c => c.country_id === selection.target)?.owner_id !== userId}
+                    isExploration={!mapState.find(c => c.country_id === selection.target)?.owner_id}
                     targetMinds={mapState.find(c => c.country_id === selection.target)?.minds || 0}
                     dayNumber={currentDay}
                     onClose={() => { setShowOrderModal(false); setSelection({ source: null, target: null }); }}

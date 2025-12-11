@@ -85,11 +85,46 @@ export async function POST() {
 
             await supabase.from('map_state').update({ minds: source.minds - minds }).eq('country_id', source_country_id);
 
+            // 1. TRANSFER (Reinforce own territory)
             if (order_type === 'transfer' && target.owner_id === user_id) {
                 await supabase.from('map_state').update({ minds: target.minds + minds }).eq('country_id', target_country_id);
                 await log(currentDay, `Reinforcements: ${minds} minds moved to ${target_country_id}.`, 'info');
             }
+
+            // 2. EXPLORE (Convert Neutral)
+            else if (order_type === 'explore') {
+                if (target.owner_id) {
+                    // Explored into owned territory? Treat as failed or bounce.
+                    // Refund.
+                    await supabase.from('map_state').update({ minds: source.minds + minds }).eq('country_id', source_country_id);
+                    await log(currentDay, `Exploration Failed: ${target_country_id} is already inhabited by another civilization. Troops returned.`, 'info');
+                    continue;
+                }
+
+                const population = target.minds;
+                if (minds >= population) {
+                    // SUCCESS: Convert
+                    const converted = Math.floor(population / 2);
+                    const newArmy = minds + converted;
+                    await supabase.from('map_state').update({ owner_id: user_id, minds: newArmy }).eq('country_id', target_country_id);
+                    await log(currentDay, `EXPLORATION: ${source_country_id} annexed ${target_country_id}. +${converted} locals joined.`, 'conquest');
+                } else {
+                    // FAILURE: Bounce
+                    const { data: currentSource } = await supabase.from('map_state').select('minds').eq('country_id', source_country_id).single();
+                    if (currentSource) {
+                        await supabase.from('map_state').update({ minds: currentSource.minds + minds }).eq('country_id', source_country_id);
+                    }
+                    await log(currentDay, `EXPLORATION FAILED: Expedition to ${target_country_id} (Pop: ${population}) retreated. (Sent: ${minds})`, 'info');
+                }
+            }
+
+            // 3. ATTACK (Combat vs Player or "Aggressive" vs Neutral if user bypassed explore)
             else if (order_type === 'attack' || (order_type === 'transfer' && target.owner_id !== user_id)) {
+
+                // (Existing Risk Combat Logic)
+                // Note: If user attacks a neutral with 'attack' order, it triggers combat logic (dice).
+                // This is fine, effectively "Aggressive Expansion".
+                // But the UI will encourage 'explore'.
 
                 // RISK COMBAT SIMULATION
                 let att = minds;
@@ -128,6 +163,74 @@ export async function POST() {
             }
         }
         await supabase.from('orders').delete().eq('day_number', currentDay);
+    }
+
+    // ========================================================
+    // ECONOMY PHASE (Automatic)
+    // ========================================================
+    // 1. Fetch Fresh Map State & Adjacency Data
+    const { data: allCountries } = await supabase.from('countries').select('id, connections');
+    const { data: mapState } = await supabase.from('map_state').select('*');
+
+    if (allCountries && mapState) {
+        const economyLogs: string[] = [];
+        const updates: Record<string, number> = {}; // country_id -> new_minds
+
+        // Helper to get current minds (checking updates first, then DB state)
+        const getMinds = (id: string) => (updates[id] !== undefined ? updates[id] : (mapState.find(c => c.country_id === id)?.minds || 0));
+        const getOwner = (id: string) => mapState.find(c => c.country_id === id)?.owner_id;
+
+        // Group by Player
+        const playerTerritories: Record<string, string[]> = {};
+        mapState.forEach(region => {
+            if (region.owner_id) {
+                if (!playerTerritories[region.owner_id]) playerTerritories[region.owner_id] = [];
+                playerTerritories[region.owner_id].push(region.country_id);
+            }
+        });
+
+        // Apply Logic Per Player
+        for (const [userId, territories] of Object.entries(playerTerritories)) {
+            // A. PASSIVE INCOME: +1 to every territory
+            territories.forEach(tid => {
+                updates[tid] = getMinds(tid) + 1;
+            });
+
+            // B. DRAFT BONUS: +3 to Frontlines
+            // Identify Frontlines
+            const frontlines = territories.filter(tid => {
+                const countryRef = allCountries.find(c => c.id === tid);
+                if (!countryRef) return false;
+                // Check neighbors
+                return countryRef.connections.some((neighborId: string) => {
+                    const neighborOwner = getOwner(neighborId);
+                    return neighborOwner !== userId; // Enemy or Neutral
+                });
+            });
+
+            const draftPool = frontlines.length > 0 ? frontlines : territories; // Fallback to anywhere if safe
+
+            // Distribute 3 minds randomly
+            const drafted = [];
+            for (let i = 0; i < 3; i++) {
+                const target = draftPool[Math.floor(Math.random() * draftPool.length)];
+                updates[target] = getMinds(target) + 1;
+                drafted.push(target);
+            }
+            economyLogs.push(`Player ...${userId.slice(-4)} drafted to: ${drafted.join(', ')}`);
+        }
+
+        // Commit Updates
+        const upsertData = Object.entries(updates).map(([id, minds]) => ({
+            country_id: id,
+            minds: minds
+        }));
+
+        if (upsertData.length > 0) {
+            const { error } = await supabase.from('map_state').upsert(upsertData);
+            if (error) console.error("Economy Update Error:", error);
+            else await log(currentDay, `Economy Resolved: Global passive growth + Drafts completed.`, 'info');
+        }
     }
 
     // ========================================================

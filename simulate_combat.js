@@ -1,11 +1,21 @@
 const SIMULATIONS = 10000;
 
-function runBattle(attackerStart, defenderStart, maxAttDice, maxDefDice) {
+function runBattle(attackerStart, defenderStart, maxAttDice, maxDefDice, useBonus = false) {
     let att = attackerStart;
     let def = defenderStart;
 
     while (att > 0 && def > 0) {
-        const attDiceCount = Math.min(maxAttDice, att);
+        let attDiceCount;
+        if (useBonus) {
+            let bonus = 0;
+            if (att < 10) bonus = 1;
+            else if (att < 20) bonus = 2;
+            else bonus = 3;
+            attDiceCount = att + bonus;
+        } else {
+            attDiceCount = Math.min(maxAttDice, att);
+        }
+
         const defDiceCount = Math.min(maxDefDice, def);
 
         const attRolls = Array.from({ length: attDiceCount }, () => Math.floor(Math.random() * 6) + 1).sort((a, b) => b - a);
@@ -23,12 +33,12 @@ function runBattle(attackerStart, defenderStart, maxAttDice, maxDefDice) {
     return { attackerWon: att > 0, survivors: Math.max(att, def) };
 }
 
-function simulate(label, att, def, maxAtt, maxDef) {
+function simulate(label, att, def, maxAtt, maxDef, useBonus = false) {
     let attackerWins = 0;
     let totalSurvivors = 0;
 
     for (let i = 0; i < SIMULATIONS; i++) {
-        const result = runBattle(att, def, maxAtt, maxDef);
+        const result = runBattle(att, def, maxAtt, maxDef, useBonus);
         if (result.attackerWon) attackerWins++;
         totalSurvivors += result.survivors;
     }
@@ -63,5 +73,17 @@ simulate("Total", 20, 10, 9999, 9999);
 simulate("Total", 6, 3, 9999, 9999);
 simulate("Total", 6, 5, 9999, 9999);
 simulate("Total", 9, 8, 9999, 9999); // <--- Added this
+
+console.log("\n5. ATTACKER BONUS (N+1/2/3 vs N)");
+simulate("Bonus", 6, 6, 9999, 9999, true);   // Bonus +1 (Rolls 7 vs 6)
+simulate("Bonus", 15, 15, 9999, 9999, true); // Bonus +2 (Rolls 17 vs 15)
+simulate("Bonus", 25, 25, 9999, 9999, true); // Bonus +3 (Rolls 28 vs 25)
+simulate("Bonus", 9, 8, 9999, 9999, true);   // 9v8 check (Rolls 10 vs 8)
+simulate("Bonus", 6, 5, 9999, 9999, true);   // 6v5 check (Rolls 7 vs 5)
+simulate("Bonus", 50, 50, 9999, 9999, true); // 50v50 check (Rolls 53 vs 50)
+
+console.log("\n6. 3v3 SCENARIOS");
+simulate("Total", 3, 3, 9999, 9999);         // 3 dice vs 3 dice
+simulate("Bonus", 3, 3, 9999, 9999, true);   // 4 dice vs 3 dice
 
 console.log("-----------------------------------------------");
