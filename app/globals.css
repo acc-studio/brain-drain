@@ -1,33 +1,127 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+/* ============================================================
+   BRAIN DRAIN — Command Console design system
+   Clean light theme · crisp white cards on light slate
+   Teal (primary) + Amber (accent) · a covert war-room console
+   ============================================================ */
+
+@theme {
+  /* Surfaces */
+  --color-canvas: oklch(0.98 0.005 240);
+  --color-surface: oklch(1 0 0);
+  --color-surface-2: oklch(0.985 0.004 240);
+  --color-line: oklch(0.92 0.006 240);
+  --color-line-strong: oklch(0.86 0.01 240);
+
+  /* Ink */
+  --color-ink: oklch(0.24 0.02 250);
+  --color-ink-soft: oklch(0.44 0.02 250);
+  --color-ink-faint: oklch(0.62 0.015 250);
+
+  /* Brand — teal / initiative */
+  --color-teal-50: oklch(0.97 0.02 185);
+  --color-teal-100: oklch(0.93 0.05 185);
+  --color-teal-300: oklch(0.8 0.11 185);
+  --color-teal-500: oklch(0.66 0.13 188);
+  --color-teal-600: oklch(0.58 0.12 190);
+  --color-teal-700: oklch(0.48 0.1 192);
+
+  /* Amber — economy / accent */
+  --color-amber-100: oklch(0.95 0.05 85);
+  --color-amber-400: oklch(0.82 0.15 78);
+  --color-amber-500: oklch(0.77 0.16 70);
+  --color-amber-600: oklch(0.68 0.15 62);
+
+  /* Rose — combat / danger */
+  --color-rose-100: oklch(0.94 0.03 18);
+  --color-rose-400: oklch(0.72 0.17 18);
+  --color-rose-500: oklch(0.64 0.2 18);
+  --color-rose-600: oklch(0.57 0.21 20);
+
+  /* Violet — enemy / neutral markers */
+  --color-violet-400: oklch(0.68 0.16 300);
+  --color-violet-500: oklch(0.6 0.18 300);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", "Cascadia Code", monospace;
+
+  /* Radii */
+  --radius-card: 1rem;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px oklch(0.5 0.03 250 / 0.06), 0 8px 24px oklch(0.5 0.03 250 / 0.06);
+  --shadow-float: 0 2px 4px oklch(0.5 0.03 250 / 0.08), 0 16px 48px oklch(0.5 0.03 250 / 0.12);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* subtle war-room grid */
+    background-image:
+      linear-gradient(to right, oklch(0.5 0.02 250 / 0.028) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(0.5 0.02 250 / 0.028) 1px, transparent 1px);
+    background-size: 32px 32px;
+    overscroll-behavior: none;
+  }
+  ::selection {
+    background: var(--color-teal-100);
+    color: var(--color-teal-700);
+  }
+  /* Slim, themed scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border-radius: 999px;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@layer components {
+  .bd-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+  .bd-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+  .bd-panel-scroll {
+    scrollbar-gutter: stable;
+  }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+@keyframes bd-pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes bd-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(400%); }
+}
+@keyframes bd-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
